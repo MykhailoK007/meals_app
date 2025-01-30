@@ -11,6 +11,7 @@ class MealDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final favoriteMeals = ref.watch(favoriteProvider);
+    final isFavorite = favoriteMeals.contains(meal);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -19,29 +20,42 @@ class MealDetailsScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-              onPressed: () {
-                final wasAdded = ref
-                    .read(favoriteProvider.notifier)
-                    .toggleMealFavoriteStatus(meal);
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(wasAdded
-                        ? 'Meal added as a favorite.'
-                        : 'Meal removed.')));
+            onPressed: () {
+              final wasAdded = ref
+                  .read(favoriteProvider.notifier)
+                  .toggleMealFavoriteStatus(meal);
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(wasAdded
+                      ? 'Meal added as a favorite.'
+                      : 'Meal removed.')));
+            },
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return RotationTransition(
+                    turns: Tween(end: 1.0, begin: 0.5).animate(animation),
+                    child: child);
               },
-              icon: Icon(favoriteMeals.contains(meal)
-                  ? Icons.star
-                  : Icons.star_border))
+              child: Icon(
+                isFavorite ? Icons.star : Icons.star_border,
+                key: ValueKey(isFavorite),
+              ),
+            ),
+          )
         ],
       ),
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: 16),
         children: [
-          Image.network(
-            meal.imageUrl,
-            height: 300,
-            width: double.infinity,
-            fit: BoxFit.cover,
+          Hero(
+            tag: meal.id,
+            child: Image.network(
+              meal.imageUrl,
+              height: 300,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
           SizedBox(height: 24),
           Text(
